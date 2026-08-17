@@ -3,29 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Inventario en Tiempo Real</title>
+    <title>MF Company Inventory Portal</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f4f4f9; }
-        h1 { color: #2c3e50; text-align: center; }
-        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background: #2c3e50; color: white; text-transform: uppercase; }
-        .status-ok { color: #27ae60; font-weight: bold; }
-        .status-reabastecer { color: #e74c3c; font-weight: bold; }
+        /* Estilos generales */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            background-color: #f4f6f9; 
+            color: #333;
+        }
+
+        /* BARRA SUPERIOR (HEADER) */
+        .top-bar {
+            background-color: #0f2541; /* Azul oscuro corporativo */
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .top-bar-left img {
+            height: 40px; /* Tamaño del logo */
+            width: auto;
+            border-radius: 50%; /* Hace que el borde del logo se vea redondo si es necesario */
+        }
+
+        .top-bar-left h2 {
+            margin: 0;
+            font-size: 1.3em;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 0.9em;
+            color: #cbd5e1;
+        }
+
+        .top-bar-right span {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .top-bar-right span:hover {
+            color: white;
+        }
+
+        /* Contenedor principal */
+        .container { 
+            padding: 25px; 
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Estilos de la Tabla */
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: left; 
+        }
+
+        th, td { 
+            padding: 14px 20px; 
+            border-bottom: 1px solid #e2e8f0; 
+        }
+
+        th { 
+            background-color: #34495e; 
+            color: white; 
+            font-weight: 600; 
+            font-size: 0.9em; 
+            text-transform: uppercase; 
+        }
+
+        tr:hover { 
+            background-color: #f8fafc; 
+        }
+
+        /* Etiquetas de estado */
+        .status-ok { 
+            color: #27ae60; 
+            font-weight: 600; 
+            background: #e8f8f5;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+        }
+        
+        .status-reabastecer { 
+            color: #e74c3c; 
+            font-weight: 600; 
+            background: #fdeaea;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Inventario Sede Huachipa</h1>
-    <table id="data-table">
-        <thead>
-            <tr id="headers"></tr>
-        </thead>
-        <tbody id="body"></tbody>
-    </table>
+    <!-- BARRA SUPERIOR -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <!-- AQUÍ SE CARGA TU LOGO -->
+            <img src="logo mf.png" alt="MF Logo">
+            <h2>MF Company Inventory Portal</h2>
+        </div>
+        <div class="top-bar-right">
+            <span>📊 Dashboard</span>
+            <span>⚙️ Settings</span>
+            <span style="background: #ccc; width: 30px; height: 30px; border-radius: 50%; display: inline-block;"></span> <!-- Círculo simulando avatar de usuario -->
+        </div>
+    </div>
+
+    <!-- CONTENIDO DEL INVENTARIO -->
+    <div class="container">
+        <div class="table-container">
+            <table id="data-table">
+                <thead>
+                    <tr id="headers"></tr>
+                </thead>
+                <tbody id="body"></tbody>
+            </table>
+        </div>
+    </div>
 
     <script>
-        // Tu URL de Google Sheets publicada como CSV
+        // Enlace CSV de tu Google Sheets
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRcpW705GdG6xBkkBuDcm9dCMfmzDbj3xajReoZKFSi0Gj_FmSQpp8gC58G_n4BNjQc3DGBroStP8OJ/pub?output=csv';
 
         fetch(CSV_URL)
@@ -34,25 +158,37 @@
                 const rows = text.split('\n').map(row => row.split(','));
                 const headers = rows[0];
                 
+                // Imprimir encabezados
                 const headerRow = document.getElementById('headers');
-                headers.forEach(h => headerRow.innerHTML += `<th>${h}</th>`);
+                headers.forEach(h => {
+                    let cleanHeader = h.replace(/"/g, '').trim();
+                    headerRow.innerHTML += `<th>${cleanHeader}</th>`;
+                });
                 
+                // Imprimir cuerpo de la tabla
                 const body = document.getElementById('body');
                 for(let i = 1; i < rows.length; i++) {
-                    if(rows[i].length < headers.length) continue;
+                    // Evitar filas vacías
+                    if(rows[i].length < headers.length || rows[i].join('').trim() === '') continue;
+                    
                     let tr = '<tr>';
                     rows[i].forEach((cell, index) => {
-                        let content = cell.replace(/"/g, ''); // Limpiar comillas
-                        // Detectar columna Estado para aplicar color
-                        if(headers[index].trim() === 'Estado') {
-                            content = `<span class="${content.trim() === 'OK' ? 'status-ok' : 'status-reabastecer'}">${content}</span>`;
+                        let content = cell.replace(/"/g, '').trim();
+                        let cleanHeader = headers[index].replace(/"/g, '').trim();
+
+                        // Dar color a la columna "Estado"
+                        if(cleanHeader === 'Estado') {
+                            let statusClass = content === 'OK' ? 'status-ok' : 'status-reabastecer';
+                            content = `<span class="${statusClass}">${content}</span>`;
                         }
+                        
                         tr += `<td>${content}</td>`;
                     });
                     tr += '</tr>';
                     body.innerHTML += tr;
                 }
-            });
+            })
+            .catch(error => console.error("Error al cargar los datos:", error));
     </script>
 </body>
 </html>
