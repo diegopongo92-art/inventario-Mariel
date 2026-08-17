@@ -1,97 +1,128 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF Company - Dashboard Analítico</title>
-    <!-- Chart.js para las gráficas -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>MF Company | Inventario Inteligente</title>
+    
+    <!-- Fuentes y Librerías Modernas -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        /* Variables de Tema (Claro / Oscuro) */
         :root {
+            --bg-color: #f8fafc;
+            --surface: #ffffff;
             --primary: #0f2541;
-            --secondary: #34495e;
-            --bg: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-muted: #7f8c8d;
-            --border-color: #e2e8f0;
-            --ok: #27ae60;
-            --alert: #e74c3c;
-            --ok-bg: #e8f8f5;
-            --alert-bg: #fdeaea;
+            --primary-light: #1e3a8a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
         }
 
-        [data-theme="dark"] {
-            --primary: #1a1a2e;
-            --secondary: #16213e;
-            --bg: #0f3460;
-            --card-bg: #1e2749;
-            --text-main: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --border-color: #2a3b5c;
-            --ok-bg: #113322;
-            --alert-bg: #441111;
-        }
+        * { box-sizing: border-box; }
 
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: var(--bg); color: var(--text-main); transition: background 0.3s, color 0.3s; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+        }
 
         /* HEADER */
-        .top-bar { background-color: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); }
-        .top-bar-left { display: flex; align-items: center; gap: 15px; }
-        .top-bar-left img { height: 40px; border-radius: 50%; background: white; padding: 2px;}
-        .top-bar-left h2 { margin: 0; font-size: 1.4em; font-weight: 500; }
-        .top-bar-right { display: flex; gap: 15px; align-items: center; font-size: 0.9em; }
-        
-        button.theme-toggle { background: transparent; border: 1px solid white; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; transition: 0.2s; }
-        button.theme-toggle:hover { background: white; color: var(--primary); }
+        .top-bar { 
+            background-color: var(--primary); 
+            color: white; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 12px 30px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        }
+        .top-bar-left { display: flex; align-items: center; gap: 12px; }
+        .top-bar-left img { height: 38px; border-radius: 8px; background: white; padding: 2px;}
+        .top-bar-left h2 { margin: 0; font-size: 1.25em; font-weight: 600; letter-spacing: -0.5px; }
+        .top-bar-right { display: flex; align-items: center; gap: 15px; font-size: 0.9em; color: #cbd5e1;}
 
-        .container { padding: 20px 25px; max-width: 1400px; margin: 0 auto; }
+        .container { padding: 30px; max-width: 1400px; margin: 0 auto; }
 
-        /* BANNER DE ALERTA */
-        #alert-banner { background-color: var(--alert); color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; display: none; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
-
-        /* CONTROLES Y FILTROS */
-        .toolbar { background: var(--card-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between; }
-        .filters { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
-        .filters input, .filters select { padding: 8px 12px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg); color: var(--text-main); outline: none; }
-        .actions button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
-        .btn-csv { background: #27ae60; } .btn-csv:hover { background: #219150; }
-        .btn-pdf { background: #e67e22; } .btn-pdf:hover { background: #d35400; }
+        /* CONTROLES */
+        .toolbar { 
+            background: var(--surface); 
+            padding: 15px 20px; 
+            border-radius: var(--radius); 
+            margin-bottom: 25px; 
+            box-shadow: var(--shadow); 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            align-items: center; 
+            border: 1px solid var(--border);
+        }
+        .search-box {
+            display: flex; align-items: center; gap: 10px; background: var(--bg-color);
+            padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border); flex: 1; min-width: 250px;
+        }
+        .search-box input { border: none; background: transparent; outline: none; width: 100%; font-family: 'Inter', sans-serif; color: var(--text-main); }
+        .toolbar select { 
+            padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border); 
+            background: var(--surface); color: var(--text-main); font-family: 'Inter', sans-serif; outline: none; cursor: pointer;
+        }
+        .btn-export {
+            display: flex; align-items: center; gap: 8px; padding: 10px 15px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+            cursor: pointer; font-weight: 500; color: var(--text-main); transition: 0.2s;
+        }
+        .btn-export:hover { background: var(--bg-color); border-color: var(--text-muted); }
 
         /* KPIs */
-        .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .kpi-card { background: var(--card-bg); padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 4px solid var(--secondary); transition: transform 0.2s; }
-        .kpi-card:hover { transform: translateY(-3px); }
-        .kpi-card.alert { border-top-color: var(--alert); }
-        .kpi-card h3 { margin: 0; font-size: 0.85em; color: var(--text-muted); text-transform: uppercase; }
-        .kpi-card p { margin: 10px 0 0 0; font-size: 2.2em; font-weight: bold; color: var(--primary); }
-        [data-theme="dark"] .kpi-card p { color: white; }
+        .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .kpi-card { 
+            background: var(--surface); padding: 20px; border-radius: var(--radius); 
+            box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; align-items: flex-start; gap: 15px;
+        }
+        .kpi-icon { padding: 12px; border-radius: 10px; background: var(--bg-color); color: var(--primary); }
+        .kpi-icon.danger { background: var(--danger-bg); color: var(--danger); }
+        .kpi-content h3 { margin: 0; font-size: 0.85em; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;}
+        .kpi-content p { margin: 5px 0 0 0; font-size: 1.8em; font-weight: 700; color: var(--text-main); }
 
-        /* GRÁFICAS */
-        .charts-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .chart-box { background: var(--card-bg); padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; height: 300px;}
-        .chart-box.wide { grid-column: span 2; }
+        /* GRID PRINCIPAL (Gráfica + Panel Faltantes) */
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-bottom: 25px; }
+        .card { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .card-header { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
+        .card-header h3 { margin: 0; font-size: 1.1em; color: var(--primary); font-weight: 600; }
+
+        /* PANEL DE FALTANTES */
+        .missing-list { list-style: none; padding: 0; margin: 0; max-height: 350px; overflow-y: auto; }
+        .missing-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 12px; border-bottom: 1px solid var(--border);
+        }
+        .missing-item:last-child { border-bottom: none; }
+        .missing-info { display: flex; flex-direction: column; }
+        .missing-name { font-weight: 600; font-size: 0.95em; }
+        .missing-talla { font-size: 0.8em; color: var(--text-muted); }
+        .badge-alert { background: var(--danger-bg); color: var(--danger); padding: 4px 10px; border-radius: 20px; font-size: 0.75em; font-weight: 600; }
 
         /* TABLA */
-        .table-container { background: var(--card-bg); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow-x: auto; }
+        .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 0.9em; color: var(--text-main); }
-        th { background-color: var(--secondary); color: white; text-transform: uppercase; position: sticky; top: 0; }
-        tr:hover { background-color: var(--bg); }
+        th { background-color: var(--bg-color); color: var(--text-muted); font-size: 0.85em; text-transform: uppercase; padding: 15px; border-bottom: 2px solid var(--border); font-weight: 600;}
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.95em; color: var(--text-main); }
+        tr:hover { background-color: #f8fafc; }
         
-        .status-ok { color: var(--ok); font-weight: bold; background: var(--ok-bg); padding: 4px 10px; border-radius: 12px; }
-        .status-reabastecer { color: var(--alert); font-weight: bold; background: var(--alert-bg); padding: 4px 10px; border-radius: 12px; }
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 600; }
+        .status-ok { background: var(--success-bg); color: var(--success); }
+        .status-reabastecer { background: var(--danger-bg); color: var(--danger); }
 
-        /* RESPONSIVE & PRINT */
-        @media (max-width: 1024px) { .charts-container { grid-template-columns: 1fr; } .chart-box.wide { grid-column: span 1; } }
-        @media print {
-            body { background: white; color: black; }
-            .top-bar-right, .toolbar { display: none !important; }
-            .chart-box { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
-            table { border: 1px solid #ccc; }
-        }
+        @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -99,66 +130,90 @@
     <div class="top-bar">
         <div class="top-bar-left">
             <img src="logo mf.png" alt="MF Logo" onerror="this.src='https://via.placeholder.com/40x40/ffffff/0f2541?text=MF'">
-            <h2>MF Company Inventory Portal</h2>
+            <h2>MF Company Portal</h2>
         </div>
         <div class="top-bar-right">
-            <span id="last-update">Actualizando...</span>
-            <button class="theme-toggle" onclick="toggleTheme()">🌓 Modo Oscuro</button>
+            <i data-lucide="clock"></i> <span id="last-update">Sincronizando...</span>
         </div>
     </div>
 
     <div class="container">
         
-        <div id="alert-banner">⚠️ ATENCIÓN: Hay artículos críticos que requieren reabastecimiento inmediato.</div>
-
         <!-- Herramientas y Filtros -->
         <div class="toolbar">
-            <div class="filters">
-                <input type="text" id="searchInput" placeholder="🔍 Buscar artículo, talla...">
-                <select id="sedeFilter"><option value="TODAS">📍 Todas las Sedes</option></select>
-                <select id="estadoFilter">
-                    <option value="TODOS">⚡ Todos los Estados</option>
-                    <option value="OK">✅ OK</option>
-                    <option value="REABASTECER">🚨 REABASTECER</option>
-                </select>
+            <div class="search-box">
+                <i data-lucide="search" style="color: var(--text-muted); width: 20px; height: 20px;"></i>
+                <input type="text" id="searchInput" placeholder="Buscar por código o talla...">
             </div>
-            <div class="actions">
-                <button class="btn-csv" onclick="exportCSV()">📥 Descargar CSV</button>
-                <button class="btn-pdf" onclick="window.print()">🖨️ Guardar PDF</button>
-            </div>
+            <select id="sedeFilter">
+                <option value="TODAS">📍 Todas las Sedes</option>
+            </select>
+            <button class="btn-export" onclick="exportCSV()">
+                <i data-lucide="download" style="width: 18px; height: 18px;"></i> Exportar CSV
+            </button>
         </div>
 
         <!-- KPIs -->
         <div class="kpis">
-            <div class="kpi-card"><h3>Total Artículos Registrados</h3><p id="kpi-total">0</p></div>
-            <div class="kpi-card"><h3>Stock Global (Unidades)</h3><p id="kpi-stock">0</p></div>
-            <div class="kpi-card alert"><h3>Alertas de Stock</h3><p id="kpi-alert" style="color: var(--alert);">0</p></div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i data-lucide="package"></i></div>
+                <div class="kpi-content"><h3>Total Artículos</h3><p id="kpi-total">0</p></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i data-lucide="layers"></i></div>
+                <div class="kpi-content"><h3>Stock Disponible</h3><p id="kpi-stock">0</p></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon danger"><i data-lucide="alert-triangle"></i></div>
+                <div class="kpi-content"><h3>Faltantes (Agotados)</h3><p id="kpi-alert" style="color: var(--danger);">0</p></div>
+            </div>
         </div>
 
-        <!-- Gráficas -->
-        <div class="charts-container">
-            <div class="chart-box wide"><canvas id="stockChart"></canvas></div>
-            <div class="chart-box"><canvas id="doughnutChart"></canvas></div>
-            <div class="chart-box wide"><canvas id="movementChart"></canvas></div>
+        <!-- Gráficas y Faltantes -->
+        <div class="main-grid">
+            <div class="card">
+                <div class="card-header">
+                    <i data-lucide="bar-chart-2" style="color: var(--primary);"></i>
+                    <h3>Nivel de Stock (Ordenado de Mayor a Menor)</h3>
+                </div>
+                <!-- Div para ApexCharts -->
+                <div id="stockChart"></div>
+            </div>
+
+            <div class="card" style="border-top: 4px solid var(--danger);">
+                <div class="card-header">
+                    <i data-lucide="alert-circle" style="color: var(--danger);"></i>
+                    <h3 style="color: var(--danger);">Panel de Faltantes</h3>
+                </div>
+                <ul class="missing-list" id="missing-items-list">
+                    <!-- Los items sin stock se cargan aquí -->
+                </ul>
+            </div>
         </div>
 
-        <!-- Tabla de Datos -->
-        <div class="table-container">
-            <table>
-                <thead><tr id="table-headers"></tr></thead>
-                <tbody id="table-body"></tbody>
-            </table>
+        <!-- Tabla -->
+        <div class="card">
+            <div class="card-header">
+                <i data-lucide="table" style="color: var(--primary);"></i>
+                <h3>Detalle de Inventario</h3>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr id="table-headers"></tr></thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
         </div>
 
     </div>
 
     <script>
+        // Inicializar Iconos Lucide
+        lucide.createIcons();
+
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRcpW705GdG6xBkkBuDcm9dCMfmzDbj3xajReoZKFSi0Gj_FmSQpp8gC58G_n4BNjQc3DGBroStP8OJ/pub?output=csv';
         let globalData = []; let globalHeaders = [];
-        let stockChart, doughnutChart, movementChart;
-
-        // Configuración global de Chart.js para que se adapte al modo oscuro
-        Chart.defaults.color = '#7f8c8d';
+        let apexChartInstance = null;
 
         // 1. Cargar Datos
         fetch(CSV_URL)
@@ -174,49 +229,61 @@
                     globalData.push(obj);
                 }
 
-                // Poblar filtro de Sedes
+                // Cargar Sedes
                 const sedes = [...new Set(globalData.map(i => i['SEDE']))];
                 const sedeSelect = document.getElementById('sedeFilter');
                 sedes.forEach(s => { if(s) sedeSelect.innerHTML += `<option value="${s}">${s}</option>`; });
 
-                document.getElementById('last-update').innerText = "⏱️ Actualizado: " + new Date().toLocaleTimeString();
+                document.getElementById('last-update').innerText = "Actualizado: " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 applyFilters();
             });
 
-        // 2. Event Listeners para Filtros y Búsqueda
         document.getElementById('searchInput').addEventListener('input', applyFilters);
         document.getElementById('sedeFilter').addEventListener('change', applyFilters);
-        document.getElementById('estadoFilter').addEventListener('change', applyFilters);
 
-        // 3. Aplicar Filtros (Motor principal)
         function applyFilters() {
             const searchTxt = document.getElementById('searchInput').value.toLowerCase();
             const sedeVal = document.getElementById('sedeFilter').value;
-            const estadoVal = document.getElementById('estadoFilter').value;
 
             const filteredData = globalData.filter(row => {
                 const matchSearch = Object.values(row).some(val => val.toLowerCase().includes(searchTxt));
                 const matchSede = (sedeVal === 'TODAS' || row['SEDE'] === sedeVal);
-                const matchEstado = (estadoVal === 'TODOS' || row['Estado'] === estadoVal);
-                return matchSearch && matchSede && matchEstado;
+                return matchSearch && matchSede;
             });
 
             renderDashboard(filteredData);
         }
 
-        // 4. Renderizar UI
         function renderDashboard(data) {
             // Actualizar KPIs
-            const total = data.length;
             const stock = data.reduce((sum, item) => sum + (parseInt(item['Stock Actual']) || 0), 0);
-            const alertas = data.filter(i => i['Estado'] === 'REABASTECER').length;
+            
+            // Obtener Faltantes (Stock 0 o Estado REABASTECER)
+            const faltantes = data.filter(i => parseInt(i['Stock Actual']) === 0 || i['Estado'] === 'REABASTECER');
 
-            document.getElementById('kpi-total').innerText = total;
+            document.getElementById('kpi-total').innerText = data.length;
             document.getElementById('kpi-stock').innerText = stock;
-            document.getElementById('kpi-alert').innerText = alertas;
+            document.getElementById('kpi-alert').innerText = faltantes.length;
 
-            // Banner de Alerta
-            document.getElementById('alert-banner').style.display = alertas > 0 ? 'block' : 'none';
+            // Rellenar Panel de Faltantes
+            const missingList = document.getElementById('missing-items-list');
+            missingList.innerHTML = '';
+            if (faltantes.length === 0) {
+                missingList.innerHTML = '<li class="missing-item" style="color: var(--success); justify-content:center;"><i data-lucide="check-circle" style="margin-right:8px;"></i> Todo en orden. No hay faltantes.</li>';
+                lucide.createIcons();
+            } else {
+                faltantes.forEach(f => {
+                    missingList.innerHTML += `
+                        <li class="missing-item">
+                            <div class="missing-info">
+                                <span class="missing-name">${f['Código']}</span>
+                                <span class="missing-talla">Talla: ${f['Talla']} | Sede: ${f['SEDE']}</span>
+                            </div>
+                            <span class="badge-alert">Agotado</span>
+                        </li>
+                    `;
+                });
+            }
 
             // Actualizar Tabla
             const thead = document.getElementById('table-headers');
@@ -231,62 +298,54 @@
                     if(!h) return;
                     let content = row[h] || '';
                     if(h === 'Estado') {
-                        let cls = content === 'OK' ? 'status-ok' : 'status-reabastecer';
-                        content = `<span class="${cls}">${content}</span>`;
+                        let isOk = content === 'OK';
+                        content = `<span class="status-badge ${isOk ? 'status-ok' : 'status-reabastecer'}">
+                            <i data-lucide="${isOk ? 'check' : 'alert-triangle'}" style="width: 14px; height: 14px;"></i> ${content}
+                        </span>`;
                     }
-                    tr += `<td>${h.includes('Stock') ? `<strong>${content}</strong>` : content}</td>`;
+                    tr += `<td>${h === 'Stock Actual' ? `<strong>${content}</strong>` : content}</td>`;
                 });
                 tr += '</tr>';
                 tbody.innerHTML += tr;
             });
+            lucide.createIcons();
 
-            renderCharts(data);
+            renderApexChart(data);
         }
 
-        // 5. Gráficas Avanzadas
-        function renderCharts(data) {
-            const labels = data.map(i => `${i['Código']} T-${i['Talla']}`);
-            
-            // Gráfico 1: Stock Actual (Barras)
-            if(stockChart) stockChart.destroy();
-            stockChart = new Chart(document.getElementById('stockChart'), {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{ label: 'Stock Actual', data: data.map(i => i['Stock Actual']), backgroundColor: '#3498db', borderRadius: 4 }]
+        function renderApexChart(data) {
+            // Filtrar elementos con stock > 0 para que la gráfica no tenga vacíos y ordenar de MAYOR a MENOR
+            let chartData = data.filter(i => parseInt(i['Stock Actual']) > 0)
+                                .sort((a, b) => parseInt(b['Stock Actual']) - parseInt(a['Stock Actual']));
+
+            const labels = chartData.map(i => `${i['Código']} (${i['Talla']})`);
+            const seriesData = chartData.map(i => parseInt(i['Stock Actual']));
+
+            const options = {
+                series: [{ name: 'Unidades en Stock', data: seriesData }],
+                chart: { type: 'bar', height: 350, fontFamily: 'Inter, sans-serif', toolbar: { show: false } },
+                plotOptions: {
+                    bar: { borderRadius: 4, columnWidth: '50%', dataLabels: { position: 'top' } }
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Nivel de Stock por Artículo' } } }
-            });
-
-            // Gráfico 2: Ingresos vs Salidas (Rotación)
-            if(movementChart) movementChart.destroy();
-            movementChart = new Chart(document.getElementById('movementChart'), {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Ingresos', data: data.map(i => i['Ingresos']), backgroundColor: '#2ecc71' },
-                        { label: 'Salidas', data: data.map(i => i['Salidas']), backgroundColor: '#e67e22' }
-                    ]
+                dataLabels: {
+                    enabled: true, formatter: function (val) { return val; },
+                    offsetY: -20, style: { fontSize: '12px', colors: ["#304758"] }
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Análisis de Rotación (Ingresos vs Salidas)' } } }
-            });
+                xaxis: {
+                    categories: labels,
+                    labels: { style: { fontSize: '11px', fontWeight: 500 }, rotate: -45, trim: true },
+                    axisBorder: { show: false }, axisTicks: { show: false }
+                },
+                yaxis: { show: false }, // Ocultamos el eje Y porque el número ya sale arriba de la barra
+                colors: ['#3b82f6'],
+                grid: { strokeDashArray: 4, padding: { top: 0, right: 0, bottom: 0, left: 10 } }
+            };
 
-            // Gráfico 3: Estado (Doughnut)
-            const countOk = data.filter(i => i['Estado'] === 'OK').length;
-            const countReab = data.filter(i => i['Estado'] === 'REABASTECER').length;
-            if(doughnutChart) doughnutChart.destroy();
-            doughnutChart = new Chart(document.getElementById('doughnutChart'), {
-                type: 'doughnut',
-                data: { labels: ['OK', 'CRÍTICO'], datasets: [{ data: [countOk, countReab], backgroundColor: ['#27ae60', '#e74c3c'] }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Salud del Inventario' } } }
-            });
-        }
-
-        // 6. Funciones Extra
-        function toggleTheme() {
-            const html = document.documentElement;
-            html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+            if(apexChartInstance) {
+                apexChartInstance.destroy();
+            }
+            apexChartInstance = new ApexCharts(document.querySelector("#stockChart"), options);
+            apexChartInstance.render();
         }
 
         function exportCSV() {
@@ -295,10 +354,9 @@
                 let rowArray = globalHeaders.map(h => row[h]);
                 csvContent += rowArray.join(",") + "\n";
             });
-            const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "inventario_mf_company.csv");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", "Inventario_MF.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
