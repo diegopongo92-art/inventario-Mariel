@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Inventario en Tiempo Real</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f4f4f9; }
+        h1 { color: #2c3e50; text-align: center; }
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: #2c3e50; color: white; text-transform: uppercase; }
+        .status-ok { color: #27ae60; font-weight: bold; }
+        .status-reabastecer { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Inventario Sede Huachipa</h1>
+    <table id="data-table">
+        <thead>
+            <tr id="headers"></tr>
+        </thead>
+        <tbody id="body"></tbody>
+    </table>
+
+    <script>
+        // Tu URL de Google Sheets publicada como CSV
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRcpW705GdG6xBkkBuDcm9dCMfmzDbj3xajReoZKFSi0Gj_FmSQpp8gC58G_n4BNjQc3DGBroStP8OJ/pub?output=csv';
+
+        fetch(CSV_URL)
+            .then(response => response.text())
+            .then(text => {
+                const rows = text.split('\n').map(row => row.split(','));
+                const headers = rows[0];
+                
+                const headerRow = document.getElementById('headers');
+                headers.forEach(h => headerRow.innerHTML += `<th>${h}</th>`);
+                
+                const body = document.getElementById('body');
+                for(let i = 1; i < rows.length; i++) {
+                    if(rows[i].length < headers.length) continue;
+                    let tr = '<tr>';
+                    rows[i].forEach((cell, index) => {
+                        let content = cell.replace(/"/g, ''); // Limpiar comillas
+                        // Detectar columna Estado para aplicar color
+                        if(headers[index].trim() === 'Estado') {
+                            content = `<span class="${content.trim() === 'OK' ? 'status-ok' : 'status-reabastecer'}">${content}</span>`;
+                        }
+                        tr += `<td>${content}</td>`;
+                    });
+                    tr += '</tr>';
+                    body.innerHTML += tr;
+                }
+            });
+    </script>
+</body>
+</html>
