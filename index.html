@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF Company | Inventario Inteligente</title>
+    <title>MULTI FOODS - INVENTARIO</title>
     
     <!-- Fuentes y Librerías Modernas -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Librería para Exportar PDF Gerencial -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
@@ -23,6 +25,8 @@
             --danger-bg: #fef2f2;
             --success: #10b981;
             --success-bg: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-bg: #fffbeb;
             --radius: 12px;
             --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
         }
@@ -53,12 +57,12 @@
 
         .container { padding: 30px; max-width: 1400px; margin: 0 auto; }
 
-        /* CONTROLES */
+        /* CONTROLES Y HERRAMIENTAS */
         .toolbar { 
             background: var(--surface); 
             padding: 15px 20px; 
             border-radius: var(--radius); 
-            margin-bottom: 25px; 
+            margin-bottom: 20px; 
             box-shadow: var(--shadow); 
             display: flex; 
             flex-wrap: wrap; 
@@ -81,6 +85,17 @@
             cursor: pointer; font-weight: 500; color: var(--text-main); transition: 0.2s;
         }
         .btn-export:hover { background: var(--bg-color); border-color: var(--text-muted); }
+        .btn-pdf { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-pdf:hover { background: var(--primary-light); color: white; border-color: var(--primary-light); }
+
+        /* INSIGHTS INTELIGENTES */
+        .insight-card {
+            background: var(--warning-bg); border-left: 4px solid var(--warning);
+            padding: 15px 20px; border-radius: 8px; margin-bottom: 25px;
+            display: flex; align-items: center; gap: 15px; font-size: 0.95em; color: #b45309;
+            box-shadow: var(--shadow);
+        }
+        .insight-card strong { color: #92400e; }
 
         /* KPIs */
         .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
@@ -93,14 +108,14 @@
         .kpi-content h3 { margin: 0; font-size: 0.85em; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;}
         .kpi-content p { margin: 5px 0 0 0; font-size: 1.8em; font-weight: 700; color: var(--text-main); }
 
-        /* GRID PRINCIPAL (Gráfica + Panel Faltantes) */
+        /* GRID PRINCIPAL */
         .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-bottom: 25px; }
         .card { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
         .card-header { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
         .card-header h3 { margin: 0; font-size: 1.1em; color: var(--primary); font-weight: 600; }
 
         /* PANEL DE FALTANTES */
-        .missing-list { list-style: none; padding: 0; margin: 0; max-height: 350px; overflow-y: auto; }
+        .missing-list { list-style: none; padding: 0; margin: 0; max-height: 400px; overflow-y: auto; }
         .missing-item { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 12px; border-bottom: 1px solid var(--border);
@@ -130,27 +145,39 @@
     <div class="top-bar">
         <div class="top-bar-left">
             <img src="logo mf.png" alt="MF Logo" onerror="this.src='https://via.placeholder.com/40x40/ffffff/0f2541?text=MF'">
-            <h2>MF Company Portal</h2>
+            <h2>MF Company | Analítica</h2>
         </div>
         <div class="top-bar-right">
             <i data-lucide="clock"></i> <span id="last-update">Sincronizando...</span>
         </div>
     </div>
 
-    <div class="container">
-        
-        <!-- Herramientas y Filtros -->
+    <!-- Controles (No se imprimen en el PDF) -->
+    <div class="container" style="padding-bottom: 0;" id="tools-container">
         <div class="toolbar">
             <div class="search-box">
                 <i data-lucide="search" style="color: var(--text-muted); width: 20px; height: 20px;"></i>
-                <input type="text" id="searchInput" placeholder="Buscar por código o talla...">
+                <input type="text" id="searchInput" placeholder="Buscar por código, talla o estado...">
             </div>
             <select id="sedeFilter">
                 <option value="TODAS">📍 Todas las Sedes</option>
             </select>
             <button class="btn-export" onclick="exportCSV()">
-                <i data-lucide="download" style="width: 18px; height: 18px;"></i> Exportar CSV
+                <i data-lucide="sheet" style="width: 18px; height: 18px;"></i> Exportar CSV
             </button>
+            <button class="btn-export btn-pdf" onclick="exportToPDF()">
+                <i data-lucide="file-down" style="width: 18px; height: 18px;"></i> Reporte Gerencial PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Contenido que irá en el PDF -->
+    <div class="container" id="dashboard-content" style="padding-top: 0;">
+        
+        <!-- Insight Inteligente -->
+        <div class="insight-card">
+            <i data-lucide="lightbulb" style="min-width: 24px; min-height: 24px;"></i>
+            <div id="insight-text">Analizando inventario...</div>
         </div>
 
         <!-- KPIs -->
@@ -161,7 +188,7 @@
             </div>
             <div class="kpi-card">
                 <div class="kpi-icon"><i data-lucide="layers"></i></div>
-                <div class="kpi-content"><h3>Stock Disponible</h3><p id="kpi-stock">0</p></div>
+                <div class="kpi-content"><h3>Stock Físico Global</h3><p id="kpi-stock">0</p></div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-icon danger"><i data-lucide="alert-triangle"></i></div>
@@ -173,21 +200,18 @@
         <div class="main-grid">
             <div class="card">
                 <div class="card-header">
-                    <i data-lucide="bar-chart-2" style="color: var(--primary);"></i>
-                    <h3>Nivel de Stock (Ordenado de Mayor a Menor)</h3>
+                    <i data-lucide="bar-chart-horizontal" style="color: var(--primary);"></i>
+                    <h3>Nivel de Stock (Top 15 Artículos)</h3>
                 </div>
-                <!-- Div para ApexCharts -->
                 <div id="stockChart"></div>
             </div>
 
             <div class="card" style="border-top: 4px solid var(--danger);">
                 <div class="card-header">
                     <i data-lucide="alert-circle" style="color: var(--danger);"></i>
-                    <h3 style="color: var(--danger);">Panel de Faltantes</h3>
+                    <h3 style="color: var(--danger);">Panel de Urgencias</h3>
                 </div>
-                <ul class="missing-list" id="missing-items-list">
-                    <!-- Los items sin stock se cargan aquí -->
-                </ul>
+                <ul class="missing-list" id="missing-items-list"></ul>
             </div>
         </div>
 
@@ -195,7 +219,7 @@
         <div class="card">
             <div class="card-header">
                 <i data-lucide="table" style="color: var(--primary);"></i>
-                <h3>Detalle de Inventario</h3>
+                <h3>Detalle de Movimientos</h3>
             </div>
             <div class="table-wrapper">
                 <table>
@@ -208,7 +232,6 @@
     </div>
 
     <script>
-        // Inicializar Iconos Lucide
         lucide.createIcons();
 
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRcpW705GdG6xBkkBuDcm9dCMfmzDbj3xajReoZKFSi0Gj_FmSQpp8gC58G_n4BNjQc3DGBroStP8OJ/pub?output=csv';
@@ -229,7 +252,6 @@
                     globalData.push(obj);
                 }
 
-                // Cargar Sedes
                 const sedes = [...new Set(globalData.map(i => i['SEDE']))];
                 const sedeSelect = document.getElementById('sedeFilter');
                 sedes.forEach(s => { if(s) sedeSelect.innerHTML += `<option value="${s}">${s}</option>`; });
@@ -255,22 +277,22 @@
         }
 
         function renderDashboard(data) {
-            // Actualizar KPIs
             const stock = data.reduce((sum, item) => sum + (parseInt(item['Stock Actual']) || 0), 0);
-            
-            // Obtener Faltantes (Stock 0 o Estado REABASTECER)
             const faltantes = data.filter(i => parseInt(i['Stock Actual']) === 0 || i['Estado'] === 'REABASTECER');
 
+            // KPIs
             document.getElementById('kpi-total').innerText = data.length;
             document.getElementById('kpi-stock').innerText = stock;
             document.getElementById('kpi-alert').innerText = faltantes.length;
 
-            // Rellenar Panel de Faltantes
+            // Generar Insight Inteligente
+            generarInsight(data, faltantes);
+
+            // Rellenar Faltantes
             const missingList = document.getElementById('missing-items-list');
             missingList.innerHTML = '';
             if (faltantes.length === 0) {
-                missingList.innerHTML = '<li class="missing-item" style="color: var(--success); justify-content:center;"><i data-lucide="check-circle" style="margin-right:8px;"></i> Todo en orden. No hay faltantes.</li>';
-                lucide.createIcons();
+                missingList.innerHTML = '<li class="missing-item" style="color: var(--success); justify-content:center;"><i data-lucide="check-circle" style="margin-right:8px;"></i> Todo en orden.</li>';
             } else {
                 faltantes.forEach(f => {
                     missingList.innerHTML += `
@@ -279,9 +301,8 @@
                                 <span class="missing-name">${f['Código']}</span>
                                 <span class="missing-talla">Talla: ${f['Talla']} | Sede: ${f['SEDE']}</span>
                             </div>
-                            <span class="badge-alert">Agotado</span>
-                        </li>
-                    `;
+                            <span class="badge-alert">Reabastecer</span>
+                        </li>`;
                 });
             }
 
@@ -289,7 +310,6 @@
             const thead = document.getElementById('table-headers');
             const tbody = document.getElementById('table-body');
             thead.innerHTML = ''; tbody.innerHTML = '';
-            
             globalHeaders.forEach(h => { if(h) thead.innerHTML += `<th>${h}</th>`; });
             
             data.forEach(row => {
@@ -308,44 +328,83 @@
                 tr += '</tr>';
                 tbody.innerHTML += tr;
             });
-            lucide.createIcons();
 
+            lucide.createIcons();
             renderApexChart(data);
         }
 
+        // FUNCIÓN NUEVA: Insight Gerencial
+        function generarInsight(data, faltantes) {
+            if(data.length === 0) return;
+            
+            // Encontrar el producto con más stock
+            let topItem = data.reduce((max, obj) => (parseInt(obj['Stock Actual']) || 0) > (parseInt(max['Stock Actual']) || 0) ? obj : max, data[0]);
+            
+            let mensaje = `<strong>Resumen Directivo:</strong> El artículo con mayor retención es <strong>${topItem['Código']} (T-${topItem['Talla']})</strong> con ${topItem['Stock Actual']} unidades en almacén. `;
+            
+            if(faltantes.length > 0) {
+                mensaje += `Se requiere atención inmediata en <strong style="color: #b91c1c;">${faltantes.length} artículos</strong> que han llegado a stock crítico o cero.`;
+            } else {
+                mensaje += `<span style="color: var(--success); font-weight:600;">El inventario goza de excelente salud, sin productos agotados.</span>`;
+            }
+            
+            document.getElementById('insight-text').innerHTML = mensaje;
+        }
+
+        // GRÁFICO HORIZONTAL MEJORADO
         function renderApexChart(data) {
-            // Filtrar elementos con stock > 0 para que la gráfica no tenga vacíos y ordenar de MAYOR a MENOR
             let chartData = data.filter(i => parseInt(i['Stock Actual']) > 0)
                                 .sort((a, b) => parseInt(b['Stock Actual']) - parseInt(a['Stock Actual']));
+            
+            // Limitamos a Top 15 para que la gráfica no sea enorme hacia abajo
+            chartData = chartData.slice(0, 15);
 
-            const labels = chartData.map(i => `${i['Código']} (${i['Talla']})`);
+            const labels = chartData.map(i => `${i['Código']} (T-${i['Talla']})`);
             const seriesData = chartData.map(i => parseInt(i['Stock Actual']));
 
             const options = {
-                series: [{ name: 'Unidades en Stock', data: seriesData }],
-                chart: { type: 'bar', height: 350, fontFamily: 'Inter, sans-serif', toolbar: { show: false } },
+                series: [{ name: 'Unidades', data: seriesData }],
+                chart: { type: 'bar', height: 420, fontFamily: 'Inter, sans-serif', toolbar: { show: false } },
                 plotOptions: {
-                    bar: { borderRadius: 4, columnWidth: '50%', dataLabels: { position: 'top' } }
+                    bar: { horizontal: true, borderRadius: 4, dataLabels: { position: 'top' }, barHeight: '65%' }
                 },
                 dataLabels: {
-                    enabled: true, formatter: function (val) { return val; },
-                    offsetY: -20, style: { fontSize: '12px', colors: ["#304758"] }
+                    enabled: true, offsetX: 20, style: { fontSize: '12px', colors: ["#334155"] }
                 },
                 xaxis: {
-                    categories: labels,
-                    labels: { style: { fontSize: '11px', fontWeight: 500 }, rotate: -45, trim: true },
-                    axisBorder: { show: false }, axisTicks: { show: false }
+                    categories: labels, labels: { style: { fontSize: '12px', fontWeight: 500 } }
                 },
-                yaxis: { show: false }, // Ocultamos el eje Y porque el número ya sale arriba de la barra
+                yaxis: { 
+                    labels: { show: true, style: { fontSize: '11px', fontWeight: 600, colors: '#64748b' }, maxWidth: 180 } 
+                },
                 colors: ['#3b82f6'],
-                grid: { strokeDashArray: 4, padding: { top: 0, right: 0, bottom: 0, left: 10 } }
+                grid: { strokeDashArray: 4, xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } }
             };
 
-            if(apexChartInstance) {
-                apexChartInstance.destroy();
-            }
+            if(apexChartInstance) apexChartInstance.destroy();
             apexChartInstance = new ApexCharts(document.querySelector("#stockChart"), options);
             apexChartInstance.render();
+        }
+
+        // EXPORTACIÓN A PDF PROFESIONAL
+        function exportToPDF() {
+            const element = document.getElementById('dashboard-content');
+            const opt = {
+                margin:       0.3,
+                filename:     `Reporte_Inventario_MF_${new Date().toISOString().slice(0,10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+            };
+            
+            // Cambiamos temporalmente el botón a estado de carga
+            const btn = document.querySelector('.btn-pdf');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Generando PDF...';
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.innerHTML = originalText;
+            });
         }
 
         function exportCSV() {
@@ -356,10 +415,8 @@
             });
             const link = document.createElement("a");
             link.setAttribute("href", encodeURI(csvContent));
-            link.setAttribute("download", "Inventario_MF.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            link.setAttribute("download", `Inventario_MF_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
     </script>
 </body>
